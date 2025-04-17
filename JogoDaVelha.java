@@ -1,66 +1,133 @@
-public class JogoDaVelha {
-    protected static final int X = 1, O = -1;
-    protected static final int VAZIO = 0;
-    protected int tabuleiro[][] = new int[3][3];
-    protected int jogador;
+import java.util.Random;
 
-    public JogoDaVelha() {
-        limpaTabuleiro();
+public class JogoDaVelha {
+    private int[][] tabuleiro;
+    private int jogadorAtual;
+    private int tamanho;
+    private String tipoVitoria = "continuar";
+
+    public JogoDaVelha(int tamanho) {
+        this.tamanho = tamanho;
+        this.tabuleiro = new int[tamanho][tamanho];
+        this.jogadorAtual = 1; 
     }
 
-    public void limpaTabuleiro() {
-        for(int i = 0;i<3;i++) {
-            for (int j=0; j<3; j++) {
-                tabuleiro[i][j]=VAZIO;
+    public int getJogador() {
+        return jogadorAtual;
+    }
+
+    public int poePecaAutomatico() {
+        Random rand = new Random();
+        int linha, coluna;
+
+        do {
+            linha = rand.nextInt(tamanho);
+            coluna = rand.nextInt(tamanho);
+        } while (tabuleiro[linha][coluna] != 0);
+
+        tabuleiro[linha][coluna] = jogadorAtual;
+
+        if (verificaVitoria(linha, coluna)) {
+            return jogadorAtual; // 1 (X) ou -1 (O) ganhou
+        } else if (verificaEmpate()) {
+            tipoVitoria = "empate";
+            return 0; // Empate
+        } else {
+            jogadorAtual *= -1; // Troca jogador
+            return 2; // Continua o jogo
+        }
+    }
+
+    private boolean verificaVitoria(int linha, int coluna) {
+        // Verificar linha
+        boolean linhaGanha = true;
+        for (int i = 0; i < tamanho; i++) {
+            if (tabuleiro[linha][i] != jogadorAtual) {
+                linhaGanha = false;
+                break;
             }
         }
-        jogador = X;
-    }
-
-    public void poePeca(int i, int j) {
-        if (i<0||i>2||j<0||j>2){
-            throw new IllegalArgumentException("Posição Inválida");
+        if (linhaGanha) {
+            tipoVitoria = "linha";
+            return true;
         }
-        if (tabuleiro[i][j]!=VAZIO) throw new IllegalArgumentException("Posição Ocupada");
-        tabuleiro[i][j]=jogador;
-        jogador = -jogador;
+
+        // Verificar coluna
+        boolean colunaGanha = true;
+        for (int i = 0; i < tamanho; i++) {
+            if (tabuleiro[i][coluna] != jogadorAtual) {
+                colunaGanha = false;
+                break;
+            }
+        }
+        if (colunaGanha) {
+            tipoVitoria = "coluna";
+            return true;
+        }
+
+        // Verificar diagonal principal
+        if (linha == coluna) {
+            boolean diagonalPrincipalGanha = true;
+            for (int i = 0; i < tamanho; i++) {
+                if (tabuleiro[i][i] != jogadorAtual) {
+                    diagonalPrincipalGanha = false;
+                    break;
+                }
+            }
+            if (diagonalPrincipalGanha) {
+                tipoVitoria = "diagonal";
+                return true;
+            }
+        }
+
+        // Verificar diagonal secundária
+        if (linha + coluna == tamanho - 1) {
+            boolean diagonalSecundariaGanha = true;
+            for (int i = 0; i < tamanho; i++) {
+                if (tabuleiro[i][tamanho - 1 - i] != jogadorAtual) {
+                    diagonalSecundariaGanha = false;
+                    break;
+                }
+            }
+            if (diagonalSecundariaGanha) {
+                tipoVitoria = "diagonal";
+                return true;
+            }
+        }
+
+        return false;
     }
 
+    private boolean verificaEmpate() {
+        for (int i = 0; i < tamanho; i++) {
+            for (int j = 0; j < tamanho; j++) {
+                if (tabuleiro[i][j] == 0) {
+                    return false;
+                }
+            }
+        }
+        return true; 
+    }
 
     public String venceuUsando() {
-        String resultado = "continuar";
-        // Implemente este método que deve retornar se o vencedor venceu com
-        // uma linha, coluna ou diagonal. O retorno deve ser "linha", "coluna",
-        // "diagonal" ou "continuar" caso o jogo não tenha terminado.
-
-        return resultado;
+        return tipoVitoria;
     }
-    
-    public String toString() {
-        /** Implementar o método to String que deve retornar
-         * uma string com o tabuleiro do jogo da velha com as peças
-         * nas posições corretas.
-         */
-        String retorno = "";
-        for (int i=0; i<3;i++){
-            for (int j=0; j<3; j++){
-                if(tabuleiro[i][j]==X) {
-                    retorno += ("X");
-                } else if (tabuleiro[i][j]==O) {
-                    retorno += ("O");
-                } else {
-                    retorno += (" ");
-                }
-                if (j<2){
-                    retorno += ("|");
-                }
-            }
-            //System.out.println();
-            if (i<2){
-                retorno += ("\n-----\n");
-            }
 
-        }   
-        return retorno;
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        for (int[] linha : tabuleiro) {
+            for (int valor : linha) {
+                if (valor == 1) {
+                    sb.append(" X ");
+                } else if (valor == -1) {
+                    sb.append(" O ");
+                } else {
+                    sb.append(" . ");
+                }
+            }
+            sb.append("\n");
+        }
+        return sb.toString();
     }
 }
